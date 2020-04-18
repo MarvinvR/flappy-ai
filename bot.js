@@ -22,7 +22,7 @@ function startBot(firstRound, i) {
     //dead
     if (firstRound) {
         thoughtProcess = []
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 5; i++) {
             thoughtProcess.push(Math.random())
         }
     } else {
@@ -83,7 +83,7 @@ function trainingRound(firstRound) {
 
 function evaluate() {
     if(started && pipe) {
-        var should = shouldJump(bird.rotation, bird.x, bird.y, pipe.x, pipe.y, thoughtProcess)
+        var should = shouldJump(bird.x, bird.y, pipe.x, pipe.y, thoughtProcess)
         if(should) {
             jumpBird()
         }
@@ -118,8 +118,8 @@ function fillPersistentArray(attempts) {
     localStorage.setItem('nn', JSON.stringify(lastAttempts))
 }
 
-function shouldJump(br, bx, by, px, py, tp) {
-    z = br * tp[0] + bx * tp[1] + by * tp[2] + px * tp[3] + py * tp[4] + tp[5]
+function shouldJump(bx, by, px, py, tp) {
+    z = bx * tp[0] + by * tp[1] + px * tp[2] + py * tp[3] + tp[4]
     z = z/1000
     var val = 1/(1 + Math.exp(-z))
     return (val >= 0.8)
