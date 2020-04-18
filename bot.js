@@ -22,13 +22,15 @@ function startBot(firstRound, i) {
     //dead
     if (firstRound) {
         thoughtProcess = []
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 3; i++) {
             thoughtProcess.push(Math.random())
         }
     } else {
         thoughtProcess = lastAttempts[i].tp
-        for (let i = 0; i < getRandomArbitrary(0, 3); i++) {
-            thoughtProcess[getRandomArbitrary(0, thoughtProcess.length)] = Math.random()
+        for (let i = 0; i < getRandomArbitrary(0, 2); i++) {
+            var randomIndex = getRandomArbitrary(0, thoughtProcess.length)
+            var value =  thoughtProcess[randomIndex]
+            thoughtProcess[randomIndex] = (value * 3 + Math.random())/4
         }
     }
     jumpBird()
@@ -119,8 +121,8 @@ function fillPersistentArray(attempts) {
 }
 
 function shouldJump(bx, by, px, py, tp) {
-    z = bx * tp[0] + by * tp[1] + px * tp[2] + py * tp[3] + tp[4]
-    z = z/1000
+    z = (bx - px) * tp[0] + (by - py) * tp[1] + tp[2]
+    z = z/100
     var val = 1/(1 + Math.exp(-z))
     return (val >= 0.8)
 }
