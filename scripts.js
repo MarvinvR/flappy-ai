@@ -1,6 +1,9 @@
 // https://createjs.com/#!/TweenJS/demos/sparkTable
             // https://createjs.com/Docs/TweenJS/modules/TweenJS.html
             // view-source:https://createjs.com/Demos/EaselJS/Game.html COPY THIS
+
+function FlappyBird(container) {
+
             var stage, w, h, loader, pipe1height, pipe2height, pipe3height, startX, startY, wiggleDelta;
             var background, bird, ground, pipe, bottomPipe, pipes, rotationDelta, counter, counterOutline;
             var started = false; 
@@ -17,7 +20,7 @@
 
             var counterShow = false;
 
-            document.onkeydown = handleKeyDown;
+            //document.onkeydown = handleKeyDown;
 
             function init() {
                 if (window.top != window) {
@@ -27,7 +30,7 @@
 
                 // createjs.MotionGuidePlugin.install();
 
-                stage = new createjs.Stage("testCanvas");
+                stage = new createjs.Stage(container);
 
                 createjs.Touch.enable(stage);
                 // stage.canvas.width = document.body.clientWidth; //document.width is obsolete
@@ -44,10 +47,6 @@
                     {src:"http://www.appcycle.me/flappy/img/pipe.png", id:"pipe"},
                     {src:"http://www.appcycle.me/flappy/img/restart.png", id:"start"},
                     {src:"http://www.appcycle.me/flappy/img/share.png", id:"share"},
-                    {src:"http://www.appcycle.me/flappy/fonts/FB.eot"},
-                    {src:"http://www.appcycle.me/flappy/fonts/FB.svg"},
-                    {src:"http://www.appcycle.me/flappy/fonts/FB.ttf"},
-                    {src:"http://www.appcycle.me/flappy/fonts/FB.woff"}
                 ];
 
                 loader = new createjs.LoadQueue(false);
@@ -126,6 +125,7 @@
 
             function handleJumpStart() {
                 if (!dead) {
+                    console.log()
                     createjs.Tween.removeTweens ( bird )
                     bird.gotoAndPlay("jump");
                     startJump = true
@@ -188,8 +188,7 @@
                 stage.removeChild(share)
             }
             function addClickToStart() {
-                start.addEventListener("click", restart());
-                share.addEventListener("click", goShare);
+                restart()
             }
 
             function goShare() {
@@ -302,3 +301,13 @@
                 
                 stage.update(event);
             }
+
+            return {
+                init: init,
+                handleJumpStart: handleJumpStart,
+                bird: function(){return bird},
+                counter:function(){return counter},
+                pipe:function(){return pipe},
+                started: function(){return started}
+            }
+        }

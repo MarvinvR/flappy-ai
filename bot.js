@@ -1,16 +1,16 @@
+var attempts = []
 var lastAttempts = []
-var TRAINING_ROUNDS = 50
+var TRAINING_ROUNDS = 100
 var NUM_BEST_ATTEMPTS = 5
+
+var env
 
 var stopTraining = false
 var roundActive = false
 
-var thoughtProcess = []
-setInterval(function() {
-    evaluate()
-}, 100)
 
-function startBot(firstRound, i) {
+function startBot(instance, firstRound) {
+    var thoughtProcess = []
     // Needed info:
     //bird.y
     //bird.x
@@ -26,76 +26,71 @@ function startBot(firstRound, i) {
             thoughtProcess.push(Math.random())
         }
     } else {
-        thoughtProcess = lastAttempts[i].tp
+        thoughtProcess = lastAttempts[getRandomArbitrary(0, TRAINING_ROUNDS)].tp
         for (let i = 0; i < getRandomArbitrary(0, 2); i++) {
             var randomIndex = getRandomArbitrary(0, thoughtProcess.length)
             var value =  thoughtProcess[randomIndex]
             thoughtProcess[randomIndex] = (value * 3 + Math.random())/4
         }
     }
-    jumpBird()
+    instance.handleJumpStart()
     return thoughtProcess
 }
 
 function trainBot() {
     lastAttempts = JSON.parse(localStorage.getItem('nn'))
-    if(!lastAttempts) {
-        trainingRound(true)
-        roundActive = true
-    }
-    var trainingInterval = setInterval(function () {
-        if(!roundActive) {
-            roundActive = true
-            trainingRound(false)
-        }
-        if(stopTraining) {
-            clearInterval(trainingInterval)
-            console.log(lastAttempts)
-        }
-    }, 500)
-}
-
-function trainingRound(firstRound) {
-    var tp = startBot(firstRound, 0)
-    var lastScore = 0
-    var i = 0
-    var attempts = []
-    var interval = setInterval(function() {
-        if(!started) {
-            if(i < TRAINING_ROUNDS) {
-                console.log("Round " + i)
-                console.log(tp)
-                console.log(lastScore)
-                attempts.push({score: lastScore, tp: tp})
-                tp = startBot(firstRound, i)
-                i++
-            } else {
-                attempts.sort((a, b) => (a.score < b.score) ? 1 : -1)
-                attempts = attempts.filter((x) => {return x.score > 0})
-                console.log(attempts[0])
-                fillPersistentArray(attempts)
-                clearInterval(interval);
-                roundActive = false
-            }
+    env.forEach(e => {
+        if(!lastAttempts) {
+            trainingRound(e, true)
         } else {
-            lastScore = counter.text
+            trainingRound(e, false)
+        }
+    })
+    var pollInterval = setInterval( () => {
+        if(stopTraining) {
+            clearInterval(pollInterval)
+        }
+        if(attempts.length == TRAINING_ROUNDS) {
+            fillPersistentArray()
+            attempts = []
+            /*env.forEach(e => {
+                trainingRound(e, false)
+            })*/
         }
     }, 100)
 }
 
-function evaluate() {
-    if(started && pipe) {
-        var should = shouldJump(bird.x, bird.y, pipe.x, pipe.y, thoughtProcess)
-        if(should) {
-            jumpBird()
+function trainingRound(instance, firstRound) {
+    var tp = startBot(instance, firstRound)
+    var lastScore = 0
+    var interval = setInterval(function() {
+        if(!instance.started()) {
+            console.log("Done")
+            console.log(tp)
+            console.log(lastScore)
+            console.log("------")
+            attempts.push({score: lastScore, tp: tp})
+            clearInterval(interval);
+        } else {
+            lastScore = instance.counter().text
+            evaluate(instance, tp)
         }
-    } else if(!pipe && bird.rotation > 30) {
-        jumpBird()
+    }, 50)
+}
+
+function evaluate(instance, thoughtProcess) {
+    if(instance.started() && instance.pipe()) {
+        var should = shouldJump(instance.bird().x, instance.bird().y, instance.pipe().x, instance.pipe().y, thoughtProcess)
+        if(should) {
+            instance.handleJumpStart()
+        }
+    } else if(!instance.pipe() && instance.bird().rotation > 0) {
+        instance.handleJumpStart()
     }
 
 }
 
-function fillPersistentArray(attempts) {
+function fillPersistentArray() {
     var output = []
     var numAttempts = attempts.length
     if(numAttempts > NUM_BEST_ATTEMPTS) { numAttempts = NUM_BEST_ATTEMPTS }
@@ -107,14 +102,18 @@ function fillPersistentArray(attempts) {
         if(i==0) {for(var k = 0; k < 2; k++) {output.push(attempts[i])}}
     }
     if (output.length == 0) {
-        /*for (let i = 0; i < TRAINING_ROUNDS; i++) {
-            var t = []
-            for (let i = 0; i < 6; i++) {
-                t.push(Math.random())
+        if(lastAttempts != null && lastAttempts != []) {
+            output = lastAttempts
+        } else {
+            output = [ ]
+            for (let i = 0; i < TRAINING_ROUNDS; i++) {
+                var tp = []
+                for (let j = 0; j < 3; j++) {
+                    tp.push(Math.random())
+                }
+                output.push({score: 0, tp: tp})
             }
-            output.push({score: 0, tp: t})
-        }*/
-        output = lastAttempts
+        }
     }
     lastAttempts = output
     localStorage.setItem('nn', JSON.stringify(lastAttempts))
@@ -127,11 +126,21 @@ function shouldJump(bx, by, px, py, tp) {
     return (val >= 0.8)
 }
 
-function jumpBird() {
-    var e = jQuery.Event( "keydown", { keyCode: KEYCODE_SPACE } );
-    jQuery( "body" ).trigger( e );
-}
-
 function getRandomArbitrary(min, max) {
     return Math.floor(Math.random() * max) + min  
-  }
+}
+
+function prepareEnv() {
+    var list = []
+    var objectList = []
+    for (let i = 0; i < TRAINING_ROUNDS; i++) {
+        $('#flappyBirdContainer').append('<canvas id="canvas'+ i +'" width="768" height="1024"></canvas>')
+        list.push('canvas' + i)
+    }
+    list.forEach( l => {
+        var o = FlappyBird(l)
+        o.init()
+        objectList.push(o)
+    })
+    env = objectList
+}
