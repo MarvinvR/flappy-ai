@@ -2,7 +2,7 @@
             // https://createjs.com/Docs/TweenJS/modules/TweenJS.html
             // view-source:https://createjs.com/Demos/EaselJS/Game.html COPY THIS
 
-function FlappyBird(container) {
+function FlappyBird(container, graphics = false) {
 
             var stage, w, h, loader, pipe1height, pipe2height, pipe3height, startX, startY, wiggleDelta;
             var background, bird, ground, pipe, bottomPipe, pipes, rotationDelta, counter, counterOutline;
@@ -45,8 +45,6 @@ function FlappyBird(container) {
                     {src:"http://www.appcycle.me/flappy/img/background.png", id:"background"},
                     {src:"http://www.appcycle.me/flappy/img/ground.png", id:"ground"},
                     {src:"http://www.appcycle.me/flappy/img/pipe.png", id:"pipe"},
-                    {src:"http://www.appcycle.me/flappy/img/restart.png", id:"start"},
-                    {src:"http://www.appcycle.me/flappy/img/share.png", id:"share"},
                 ];
 
                 loader = new createjs.LoadQueue(false);
@@ -57,11 +55,15 @@ function FlappyBird(container) {
             function handleComplete() {
                 
                 background = new createjs.Shape();
-                background.graphics.beginBitmapFill(loader.getResult("background")).drawRect(0,0,w,h);
+                if(graphics) {
+                    background.graphics.beginBitmapFill(loader.getResult("background")).drawRect(0,0,w,h);
+                }
                 
                 var groundImg = loader.getResult("ground");
                 ground = new createjs.Shape();
-                ground.graphics.beginBitmapFill(groundImg).drawRect(0, 0, w+groundImg.width, groundImg.height);
+                if(graphics) {
+                    ground.graphics.beginBitmapFill(groundImg).drawRect(0, 0, w+groundImg.width, groundImg.height);
+                }
                 ground.tileW = groundImg.width;
                 ground.y = h-groundImg.height;
                 
@@ -260,7 +262,7 @@ function FlappyBird(container) {
 
                 if (startJump == true) {
                     startJump = false
-                    bird.framerate = 60;
+                    bird.framerate = 30;
                     bird.gotoAndPlay("fly");
                     if (bird.roation < 0) {
                         rotationDelta = (-bird.rotation - 20)/5

@@ -1,6 +1,6 @@
 var attempts = []
 var lastAttempts = []
-var TRAINING_ROUNDS = 75
+var TRAINING_ROUNDS = 120
 var NUM_BEST_ATTEMPTS = 5
 
 var env
@@ -133,12 +133,16 @@ function getRandomArbitrary(min, max) {
 function prepareEnv() {
     var list = []
     var objectList = []
+    var firstItem = true
     for (let i = 0; i < TRAINING_ROUNDS; i++) {
-        $('#flappyBirdContainer').append('<canvas id="canvas'+ i +'" width="768" height="1024"></canvas>')
+        $('#flappyBirdContainer').append('<canvas ' + (!firstItem ? 'class="hidden" ' : '') + 'id="canvas'+ i +'" width="768" height="1024"></canvas>')
+        firstItem = false
         list.push('canvas' + i)
     }
+    firstItem = true
     list.forEach( l => {
-        var o = FlappyBird(l)
+        var o = FlappyBird(l, firstItem)
+        firstItem = false
         o.init()
         objectList.push(o)
     })
