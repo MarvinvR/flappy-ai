@@ -19,9 +19,22 @@ canvas {
     max-height: 100%;
     max-width: 100%;
 }
+.hidden {
+    visibility: hidden;
+}
 iframe {
     position: fixed;
     top: 0px;
     left: 50%;
     margin-left: -76px;
+}
+#note {
+    position: absolute;
+    border-width: 4px;
+    border-style: dotted;
+    border-color: red;
+}
+#note h1 {
+    font-size: 35px;
+    color: rgb(0, 129, 0);
 }
