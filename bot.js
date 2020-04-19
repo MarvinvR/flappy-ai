@@ -1,7 +1,10 @@
 var attempts = []
 var lastAttempts = []
-var TRAINING_ROUNDS = 120
+var levelsCompleted = 0
+var TRAINING_ROUNDS = 100
 var NUM_BEST_ATTEMPTS = 5
+var NUM_DISPLAYED_ITEMS = 3
+var generation = 1
 
 var env
 
@@ -22,15 +25,15 @@ function startBot(instance) {
     //dead
     if (!lastAttempts || lastAttempts.length == 0 ) {
         thoughtProcess = []
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 5; i++) {
             thoughtProcess.push(Math.random())
         }
     } else {
         thoughtProcess = [...lastAttempts[getRandomArbitrary(0, lastAttempts.length)].tp]
-        for (let i = 0; i < getRandomArbitrary(0, 3); i++) {
+        for (let i = 0; i < getRandomArbitrary(0, 5); i++) {
             var randomIndex = getRandomArbitrary(0, thoughtProcess.length)
             var value =  thoughtProcess[randomIndex]
-            thoughtProcess[randomIndex] = (value * 8 + Math.random())/9
+            thoughtProcess[randomIndex] = (value * generation + Math.random() * 2)/(generation + 2)
         }
     }
     instance.handleJumpStart()
@@ -39,6 +42,8 @@ function startBot(instance) {
 
 function trainBot() {
     lastAttempts = JSON.parse(localStorage.getItem('nn'))
+    levelsCompleted = localStorage.getItem('levelsCompleted')
+    generation = localStorage.getItem('generation')
     env.forEach(e => {
         trainingRound(e)
     })
@@ -90,9 +95,10 @@ function evaluate(instance, thoughtProcess) {
 }
 
 function shouldJump(bx, by, px, py, tp) {
-    z = (bx - px) * tp[0] + (by - py) * tp[1] + tp[2]
+    z = (bx - px) * tp[0] + (py - by) * tp[1] + (px + 250 - bx) * tp[2] + (py + 50 - by) * tp[3] + tp[4]
+    z /= 100
     var val = 1/(1 + Math.exp(-z))
-    return (val >= 0.5)
+    return (val <= 0.12)
 }
 
 function fillPersistentArray() {
@@ -113,15 +119,15 @@ function fillPersistentArray() {
         } 
     }
     var outputScore = 0
-    output.forEach(o => {
+    attempts.forEach(o => {
         outputScore += o.score
     })
-    var lastAttemptsScore = 0
-    lastAttempts.forEach(l => {
-        lastAttemptsScore += l.score
-    })
-    if (lastAttemptsScore < outputScore) {
+    if (levelsCompleted <= outputScore) {
         lastAttempts = output
+        levelsCompleted = outputScore
+        generation++
+        localStorage.setItem('generation', generation)
+        localStorage.setItem('levelsCompleted', levelsCompleted)
     }
     localStorage.setItem('nn', JSON.stringify(lastAttempts))
 }
@@ -133,16 +139,14 @@ function getRandomArbitrary(min, max) {
 function prepareEnv() {
     var list = []
     var objectList = []
-    var firstItem = true
+    var visibleItems = 0
     for (let i = 0; i < TRAINING_ROUNDS; i++) {
-        $('#flappyBirdContainer').append('<canvas ' + (!firstItem ? 'class="hidden" ' : '') + 'id="canvas'+ i +'" width="768" height="1024"></canvas>')
-        firstItem = false
+        $('#flappyBirdContainer').append('<canvas ' + (visibleItems >= NUM_DISPLAYED_ITEMS ? 'class="hidden" ' : '') + 'id="canvas'+ i +'" width="768" height="1024"></canvas>')
+        visibleItems++
         list.push('canvas' + i)
     }
-    firstItem = true
     list.forEach( l => {
-        var o = FlappyBird(l, firstItem)
-        firstItem = false
+        var o = FlappyBird(l)
         o.init()
         objectList.push(o)
     })

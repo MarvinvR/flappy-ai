@@ -2,7 +2,7 @@
             // https://createjs.com/Docs/TweenJS/modules/TweenJS.html
             // view-source:https://createjs.com/Demos/EaselJS/Game.html COPY THIS
 
-function FlappyBird(container, graphics = false) {
+function FlappyBird(container) {
 
             var stage, w, h, loader, pipe1height, pipe2height, pipe3height, startX, startY, wiggleDelta;
             var background, bird, ground, pipe, bottomPipe, pipes, rotationDelta, counter, counterOutline;
@@ -55,15 +55,12 @@ function FlappyBird(container, graphics = false) {
             function handleComplete() {
                 
                 background = new createjs.Shape();
-                if(graphics) {
                     background.graphics.beginBitmapFill(loader.getResult("background")).drawRect(0,0,w,h);
-                }
                 
                 var groundImg = loader.getResult("ground");
                 ground = new createjs.Shape();
-                if(graphics) {
                     ground.graphics.beginBitmapFill(groundImg).drawRect(0, 0, w+groundImg.width, groundImg.height);
-                }
+                
                 ground.tileW = groundImg.width;
                 ground.y = h-groundImg.height;
                 
