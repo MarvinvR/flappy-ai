@@ -143,7 +143,7 @@ function FlappyBird(container) {
             function restart() {
                 //hide anything on stage and show the score
                 pipes.removeAllChildren();
-                createjs.Tween.get(start).to({y:start.y + 10}, 50).call(removeStart)
+                pipe = null
                 counter.text = 0
                 counterOutline.text = 0
                 counterOutline.alpha = 0
@@ -168,27 +168,10 @@ function FlappyBird(container) {
                         .call(diveBird) // change bird to diving position
                         .to({y:ground.y - 30}, (h - (bird.y+200))/1.5, createjs.Ease.linear); //drop to the bedrock
                 createjs.Tween.get(stage).to({alpha:0}, 100).to({alpha:1}, 100)
-                start = new createjs.Bitmap(loader.getResult("start"));
-                start.alpha = 0
-                start.x = w/2 - start.image.width/2
-                start.y = h/2 - start.image.height/2 - 150
-                share = new createjs.Bitmap(loader.getResult("share"));
-                share.alpha = 0
-                share.x = w/2 - share.image.width/2
-                share.y = h/2 - share.image.height/2 - 50
-
-                stage.addChild(start)
-                stage.addChild(share)
-                createjs.Tween.get(start).to({alpha:1, y: start.y + 50}, 400, createjs.Ease.sineIn).call(addClickToStart)
-                createjs.Tween.get(share).to({alpha:1, y: share.y + 50}, 400, createjs.Ease.sineIn).call(addClickToStart)
-                
             }
             function removeStart() {
-                stage.removeChild(start)
-                stage.removeChild(share)
             }
             function addClickToStart() {
-                restart()
             }
 
             function goShare() {
@@ -305,9 +288,11 @@ function FlappyBird(container) {
             return {
                 init: init,
                 handleJumpStart: handleJumpStart,
+                restart: restart,
                 bird: function(){return bird},
                 counter:function(){return counter},
                 pipe:function(){return pipe},
-                started: function(){return started}
+                started: function(){return started},
+                dead: function() {return dead}
             }
         }
