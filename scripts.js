@@ -15,7 +15,7 @@ function FlappyBird(container) {
             var dead = false; // is the bird dead?
             var KEYCODE_SPACE = 32;     //usefull keycode
             var gap = 250;
-            var masterPipeDelay = 178; // delay between pipes
+            var masterPipeDelay = 250//178; // delay between pipes
             var pipeDelay = masterPipeDelay; //counter used to monitor delay
 
             var counterShow = false;
@@ -168,20 +168,6 @@ function FlappyBird(container) {
                         .to({y:ground.y - 30}, (h - (bird.y+200))/1.5, createjs.Ease.linear); //drop to the bedrock
                 createjs.Tween.get(stage).to({alpha:0}, 100).to({alpha:1}, 100)
             }
-            function removeStart() {
-            }
-            function addClickToStart() {
-            }
-
-            function goShare() {
-                var countText
-                if (counter.text == 1) {
-                    countText = "1 point"
-                } else {
-                    countText = counter.text + " points"
-                }
-                window.open("https://twitter.com/share?url=http%3A%2F%2Fappcycle.me/flappy&text=I scored " + countText +  " on HTML5 Flappy Bird.");
-            }
 
             function tick(event) {
                 var deltaS = event.delta/1000;
@@ -237,12 +223,12 @@ function FlappyBird(container) {
                                 }
                             }
                             pipe.x = (pipe.x - deltaS*300);
-                            if (pipe.x <= 338 && pipe.rotation == 0 && pipe.name != "counted") {
+                            if (pipe.x <= 204 && pipe.rotation == 0 && pipe.name != "counted") {
                                 pipe.name = "counted" //using the pipe name to count pipes
-                                counter.text = counter.text + 1
-                                counterOutline.text = counterOutline.text + 1
+                                counter.text += + 1
+                                counterOutline.text += + 1
                             }
-                            if (pipe.x + pipe.image.width <= -pipe.w) { 
+                            if (pipe.x + pipe.image.width <= 0) { 
                                 pipes.removeChild(pipe)
                             }
                         }
@@ -291,6 +277,7 @@ function FlappyBird(container) {
                 bird: function(){return bird},
                 counter:function(){return counter},
                 pipe:function(){return pipe},
+                container:function(){return container},
                 started: function(){return started},
                 dead: function() {return dead}
             }

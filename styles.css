@@ -20,7 +20,7 @@ canvas {
     max-width: 100%;
 }
 .hidden {
-    visibility: hidden;
+    /*display: none;*/
 }
 iframe {
     position: fixed;
@@ -35,6 +35,10 @@ iframe {
     border-color: red;
 }
 #note h1 {
-    font-size: 35px;
+    font-size: 95px;
     color: rgb(0, 129, 0);
+}
+
+#note p {
+    font-size: 32px;
 }

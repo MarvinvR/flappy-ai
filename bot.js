@@ -1,14 +1,23 @@
+
+var TRAINING_ROUNDS = 100
+var NUM_BEST_ATTEMPTS = 5
+var NUM_ATTEMPTS_STORED = 30
+var NUM_DISPLAYED_ITEMS = 0
+var RANDOM_ODDS = 0
+var NUM_RAN = 3
+
+
 var attempts = []
 var lastAttempts = []
 var levelsCompleted = 0
-var TRAINING_ROUNDS = 100
-var NUM_BEST_ATTEMPTS = 5
-var NUM_DISPLAYED_ITEMS = 3
 var generation = 1
 
 var env
 
+// Commands
 var stopTraining = false
+var killAllBots = false
+
 var roundActive = false
 
 
@@ -25,15 +34,22 @@ function startBot(instance) {
     //dead
     if (!lastAttempts || lastAttempts.length == 0 ) {
         thoughtProcess = []
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < NUM_RAN; i++) {
             thoughtProcess.push(Math.random())
         }
     } else {
-        thoughtProcess = [...lastAttempts[getRandomArbitrary(0, lastAttempts.length)].tp]
-        for (let i = 0; i < getRandomArbitrary(0, 5); i++) {
-            var randomIndex = getRandomArbitrary(0, thoughtProcess.length)
-            var value =  thoughtProcess[randomIndex]
-            thoughtProcess[randomIndex] = (value * generation + Math.random() * 2)/(generation + 2)
+        if (getRandomArbitrary(0, 100) < RANDOM_ODDS) {
+            thoughtProcess = []
+            for (let i = 0; i < NUM_RAN; i++) {
+                thoughtProcess.push(Math.random())
+            }
+        } else {
+            thoughtProcess = [...lastAttempts[getRandomArbitrary(0, lastAttempts.length)].tp]
+            for (let i = 0; i < getRandomArbitrary(0, NUM_RAN-1); i++) {
+                var randomIndex = getRandomArbitrary(0, thoughtProcess.length)
+                var value =  thoughtProcess[randomIndex]
+                thoughtProcess[randomIndex] = (value * generation + Math.random())/(generation + 1)
+            }
         }
     }
     instance.handleJumpStart()
@@ -54,8 +70,10 @@ function trainBot() {
         if(attempts.length == TRAINING_ROUNDS) {
             fillPersistentArray()
             attempts = []
+            console.log("Next Round. Generation: " + generation)
             env.forEach(e => {
                 e.restart()
+                $("#" + e.container()).css('display', 'inline')
                 trainingRound(e)
             })
         }
@@ -67,10 +85,10 @@ function trainingRound(instance) {
     var lastScore = 0
     var interval = setInterval(function() {
         if(!instance.started() || instance.dead()) {
+            $("#" + instance.container()).css('display', 'none')
             if(lastScore > 0) {
-                console.log("------")
+                console.log("Score: " + lastScore)
                 console.log(tp)
-                console.log(lastScore)
                 console.log("------")
             }
             attempts.push({score: lastScore, tp: tp})
@@ -79,26 +97,26 @@ function trainingRound(instance) {
             lastScore = instance.counter().text
             evaluate(instance, tp)
         }
-    }, 50)
+    }, 25)
 }
 
 function evaluate(instance, thoughtProcess) {
-    if(instance.started() && instance.pipe()) {
-        var should = shouldJump(instance.bird().x, instance.bird().y, instance.pipe().x, instance.pipe().y, thoughtProcess)
+    if(instance.started() && instance.pipe() && !killAllBots) {
+        var should = shouldJump(instance.bird().x, instance.bird().y, instance.pipe().x +130, instance.pipe().y, thoughtProcess)
         if(should) {
             instance.handleJumpStart()
         }
-    } else if(!instance.pipe() && instance.bird().rotation > 0) {
+    } else if(!instance.pipe() && instance.bird().rotation > -15) {
         instance.handleJumpStart()
     }
 
 }
 
 function shouldJump(bx, by, px, py, tp) {
-    z = (bx - px) * tp[0] + (py - by) * tp[1] + (px + 250 - bx) * tp[2] + (py + 50 - by) * tp[3] + tp[4]
-    z /= 100
-    var val = 1/(1 + Math.exp(-z))
-    return (val <= 0.12)
+    z = (bx - px) * tp[0] + (py - by) * tp[1] + tp[2]
+    z /= 80
+    var val = (1/(1 + Math.exp(-z)))
+    return (val <= 0.2)
 }
 
 function fillPersistentArray() {
@@ -107,24 +125,28 @@ function fillPersistentArray() {
     attempts = attempts.filter((x) => {return x.score > 0})
     var numAttempts = attempts.length
     if(numAttempts > NUM_BEST_ATTEMPTS) { numAttempts = NUM_BEST_ATTEMPTS }
-    attPerSection = Math.floor(TRAINING_ROUNDS / numAttempts)
+    var totalScore = 0
     for (let i = 0; i < numAttempts; i++) {
-        for (let j = 0; j < attempts[i].score ** 2; j++) {
-            output.push(attempts[i])
-        }
+        output.push(attempts[i])
+        totalScore += attempts[i].score
     }
     if (output.length == 0) {
         if(lastAttempts != null && lastAttempts != []) {
             output = lastAttempts
         } 
+    } else {
+        var balancedOutput = []
+        output.forEach( o => {
+            const numSlots = NUM_ATTEMPTS_STORED / totalScore * o.score
+            for (let i = 0; i < numSlots; i++) {
+                balancedOutput.push(o)
+            }
+        })
+        output = balancedOutput
     }
-    var outputScore = 0
-    attempts.forEach(o => {
-        outputScore += o.score
-    })
-    if (levelsCompleted <= outputScore) {
+    if (levelsCompleted < totalScore) {
         lastAttempts = output
-        levelsCompleted = outputScore
+        levelsCompleted = totalScore
         generation++
         localStorage.setItem('generation', generation)
         localStorage.setItem('levelsCompleted', levelsCompleted)
@@ -137,6 +159,7 @@ function getRandomArbitrary(min, max) {
 }
 
 function prepareEnv() {
+    $('#numInstances').append(TRAINING_ROUNDS)
     var list = []
     var objectList = []
     var visibleItems = 0
