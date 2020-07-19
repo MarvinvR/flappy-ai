@@ -15,7 +15,7 @@ function FlappyBird(container) {
             var dead = false; // is the bird dead?
             var KEYCODE_SPACE = 32;     //usefull keycode
             var gap = 250;
-            var masterPipeDelay = 250//178; // delay between pipes
+            var masterPipeDelay = 250; // delay between pipes
             var pipeDelay = masterPipeDelay; //counter used to monitor delay
 
             var counterShow = false;

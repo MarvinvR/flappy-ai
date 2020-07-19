@@ -1,15 +1,22 @@
 
-var TRAINING_ROUNDS = 1
+/*
+
+    Config
+
+*/
+var TRAINING_ROUNDS = 10
 var NUM_BEST_ATTEMPTS = 5
-var NUM_ATTEMPTS_STORED = 30
+var NUM_ATTEMPTS_STORED = 10
 var NUM_DISPLAYED_ITEMS = 0
-var RANDOM_ODDS = 0
+var RANDOM_ODDS = 15
 var NUM_RAN = 3
+
+
+/*   Code   */
 
 var MASTER_THOUGHT_PROCESS = [0.04410882290469753, 0.6064345623916954, 0.04838791543931212]
 
 
-const gpu = new GPU()
 var attempts = []
 var lastAttempts = []
 var levelsCompleted = 0
@@ -116,10 +123,7 @@ function evaluate(instance, thoughtProcess) {
 }
 
 function shouldJump(bx, by, px, py, tp) {
-    const calculateOutput = gpu.createKernel(function(bx, by, px, py, tp) {
-        return 1/(1 + Math.exp(-(((bx - px) * tp[0] + (py - by) * tp[1] + tp[2])/80)))
-    }).setOutput([1]);
-    const o = calculateOutput(bx, by, px, py, tp)[0]
+    const o = 1/(1 + Math.exp(-(((bx - px) * tp[0] + (py - by) * tp[1] + tp[2])/80)))
     return (o <= 0.2)
 }
 
